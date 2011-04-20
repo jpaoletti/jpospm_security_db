@@ -30,7 +30,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.jpos.ee.DB;
-import org.jpos.ee.MD5;
 import org.jpos.ee.pm.core.PresentationManager;
 import org.jpos.ee.pm.security.core.InvalidPasswordException;
 import org.jpos.ee.pm.security.core.PMSecurityException;
@@ -307,11 +306,10 @@ public class UserManager {
         try {
             tx = db.beginTransaction();
             u.setDeleted (true);
-            //u.logRevision ("deleted", me);
             db.session().update (u);
             tx.commit();
         } catch (Exception e) {
-            e.printStackTrace(); //loguear mejor
+            PresentationManager.getPm().error(e);
             if(tx != null) tx.rollback();
         }
 
@@ -323,9 +321,7 @@ public class UserManager {
             throw new SECException( "chpass.invalid.actual" );
         
         checkRules(u.getNick(),newpass);
-
-        MD5 md5 = new MD5();
-        u.setPassword(md5.calcMD5(u.getNick() + newpass));
+        u.setPassword ((new MD5_hex()).calcMD5(u.getNick() + newpass));
         u.setChangePassword(false);
     }
     
