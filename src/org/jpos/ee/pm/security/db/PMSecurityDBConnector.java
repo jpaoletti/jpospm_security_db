@@ -34,6 +34,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
     public PMSecurityDBConnector() {
     }
 
+    @Override
     public void setService(PMSecurityService service) {
         this.service = service;
     }
@@ -47,6 +48,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
     }
 
     /**Here i get plain password and i must encrypt it before compare*/
+    @Override
     public PMSecurityUser authenticate(String username, String password) throws PMSecurityException {
         PMSecurityUser user = getUser(username);
         if (user == null) {
@@ -64,6 +66,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return user;
     }
 
+    @Override
     public void changePassword(String username, String password, String newpassword) throws PMSecurityException {
         DB db = getDb();
         try {
@@ -96,8 +99,13 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return ((new MD5_hex()).calcMD5(username + password));
     }
 
+    @Override
     public PMSecurityUser getUser(String username) throws PMSecurityException {
-        return convert(getDBUser(username));
+        final SECUser dbuser = getDBUser(username);
+        if (dbuser == null) {
+            throw new UserNotFoundException();
+        }
+        return convert(dbuser);
     }
 
     public SECUser getDBUser(String username) {
@@ -116,6 +124,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return u;
     }
 
+    @Override
     public List<PMSecurityUser> getUsers() throws PMSecurityException {
         List<PMSecurityUser> result = new ArrayList<PMSecurityUser>();
         DB db = getDb();
@@ -130,6 +139,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return result;
     }
 
+    @Override
     public void addUser(PMSecurityUser user) throws PMSecurityException {
         DB db = getDb();
         try {
@@ -146,6 +156,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         }
     }
 
+    @Override
     public void updateUser(PMSecurityUser user) throws PMSecurityException {
         DB db = getDb();
         try {
@@ -158,6 +169,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         }
     }
 
+    @Override
     public PMSecurityUserGroup getGroup(String groupname) throws PMSecurityException {
         return convert(getDBGroup(groupname));
     }
@@ -173,6 +185,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return g;
     }
 
+    @Override
     public List<PMSecurityUserGroup> getGroups() throws PMSecurityException {
         DB db = getDb();
         List<PMSecurityUserGroup> groups = new ArrayList<PMSecurityUserGroup>();
@@ -188,6 +201,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return groups;
     }
 
+    @Override
     public void addGroup(PMSecurityUserGroup group) throws PMSecurityException {
         DB db = getDb();
         try {
@@ -203,6 +217,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         }
     }
 
+    @Override
     public void updateGroup(PMSecurityUserGroup group) throws PMSecurityException {
         DB db = getDb();
         try {
@@ -215,6 +230,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         }
     }
 
+    @Override
     public List<PMSecurityPermission> getPermissions() throws PMSecurityException {
         List<PMSecurityPermission> perms = new ArrayList<PMSecurityPermission>();
         DB db = getDb();
@@ -236,6 +252,7 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         load(u, user);
         return user;
     }
+
     protected void load(SECUser u, PMSecurityUser user) throws PMSecurityException {
         user.setActive(u.isActive());
         user.setChangePassword(u.isChangePassword());
@@ -344,40 +361,48 @@ public class PMSecurityDBConnector implements PMSecurityConnector {
         return perm;
     }
 
+    @Override
     public void setContext(PMContext ctx) {
         this.ctx = ctx;
     }
 
+    @Override
     public void addProfile(PMSecurityProfile profile) throws PMSecurityException {
         // TODO Auto-generated method stub
     }
 
+    @Override
     public PMSecurityProfile getProfile(String id) throws PMSecurityException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public List<PMSecurityProfile> getProfiles() throws PMSecurityException {
         // TODO Auto-generated method stub
         return null;
     }
 
+    @Override
     public void removeGroup(PMSecurityUserGroup group)
             throws PMSecurityException {
         DB db = getDb();
         db.session().delete(getDBGroup(group.getName()));
     }
 
+    @Override
     public void removeProfile(PMSecurityProfile profile)
             throws PMSecurityException {
         // TODO Auto-generated method stub
     }
 
+    @Override
     public void updateProfile(PMSecurityProfile profile)
             throws PMSecurityException {
         // TODO Auto-generated method stub
     }
 
+    @Override
     public void removeUser(PMSecurityUser object) throws PMSecurityException {
         DB db = getDb();
         db.session().delete(getDBUser(object.getUsername()));
