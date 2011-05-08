@@ -15,69 +15,89 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.jpos.ee.pm.security;
 
 import java.io.Serializable;
+import javax.persistence.*;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-
+@Entity
+@Table(name = "sec_perms")
 public class SECPermission implements Serializable {
+
     public static final String LOGIN = "login";
     public static final String USER_ADMIN = "useradmin";
-    
     private static final long serialVersionUID = 1234401492617341582L;
     public static final String SYSCONFIG = null;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
     private String name;
     private String description;
-    
-    public SECPermission () {
-        super ();
-        setName ("");
+
+    public SECPermission() {
+        super();
+        this.name="";
     }
-    public SECPermission (String name) {
-        super ();
-        setName (name);
+
+    public SECPermission(String name) {
+        super();
+        this.name=name;
     }
-    public void setName (String name) {
+
+    public void setName(String name) {
         this.name = name;
     }
-    public String getName () {
+
+    public String getName() {
         return name;
     }
-    
-    public boolean equals(Object other) {
-        if ( !(other instanceof SECPermission) ) return false;
-        SECPermission castOther = (SECPermission) other;
-        return new EqualsBuilder()
-            .append(this.getId(), castOther.getId())
-            .isEquals();
+
+    @Override
+    public String toString() {
+        return getName();
     }
-    
-    public String toString () {
-        return getName ();
-    }
-    public int hashCode() {
-        return (int) id;
-    }
+
     public void setId(long id) {
         this.id = id;
     }
+
     public long getId() {
         return id;
     }
+
     /**
      * @param description the description to set
      */
     public void setDescription(String description) {
         this.description = description;
     }
+
     /**
      * @return the description
      */
     public String getDescription() {
         return description;
     }
-}
 
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SECPermission other = (SECPermission) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 79 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
+    }
+}

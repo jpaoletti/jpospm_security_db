@@ -1,6 +1,6 @@
 /*
  * jPOS Project [http://jpos.org]
- * Copyright (C) 2000-2008 Alejandro P. Revilla
+ * Copyright (C) 2000-2011 Alejandro P. Revilla
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as
@@ -18,175 +18,217 @@
 package org.jpos.ee.pm.security;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import javax.persistence.*;
 
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.hibernate.annotations.Type;
 import org.jpos.ee.Cloneable;
 
-
+@Entity
+@Table(name = "sec_users")
 public class SECUser extends Cloneable implements Serializable {
+
     private static final long serialVersionUID = -2596321779435316577L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
+    @Column(unique = true, updatable = false, nullable = false, length=32)
     private String nick;
+    @Column(length = 512, nullable = false)
     private String password;
     private String name;
-    private Set<SECUserGroup> groups;
-    private Map<String,String>    props;
+    @ManyToMany(targetEntity = SECUserGroup.class)
+    @JoinTable(name = "sec_user_groups", joinColumns =
+    @JoinColumn(name = "sec_user"), inverseJoinColumns =
+    @JoinColumn(name = "sec_group"))
+    private List<SECUserGroup> groups;
+    @Type(type = "yes_no")
     private boolean deleted;
+    @Type(type = "yes_no")
     private boolean active;
-    private List<SECPasswordHistory>   passwordhistory;
     private String email;
+    @Column(name = "change_password")
+    @Type(type = "yes_no")
     private boolean changePassword;
-    
+    @OneToMany(mappedBy = "user")
+    private List<SECUserProp> props;
+
     public SECUser() {
         super();
-        groups = new LinkedHashSet<SECUserGroup> ();
-        passwordhistory = new LinkedList<SECPasswordHistory> ();
     }
 
-    public boolean hasPermission (String permName) {
-        if(permName == null) return true;
-        for(SECUserGroup g : groups){
-            if(g.hasPermission(permName)) return true;
+    public boolean hasPermission(String permName) {
+        if (permName == null) {
+            return true;
+        }
+        for (SECUserGroup g : groups) {
+            if (g.hasPermission(permName)) {
+                return true;
+            }
         }
         return false;
     }
-    
+
     public void logRevision(String s, SECUser me) {
-
     }
 
-    public boolean belongsTo(long gid){
-        for(SECUserGroup g : groups){
-            if(g.getId() == gid) return true;
+    public boolean belongsTo(long gid) {
+        for (SECUserGroup g : groups) {
+            if (g.getId() == gid) {
+                return true;
+            }
         }
         return false;
     }
-    
+
     public String getNick() {
         return nick;
     }
-    public void setNick (String nick) {
+
+    public void setNick(String nick) {
         this.nick = nick;
     }
+
     public String getName() {
         return name;
     }
+
     public void setName(String name) {
         this.name = name;
     }
+
     public long getId() {
         return id;
     }
-    public void setId (long id) {
+
+    public void setId(long id) {
         this.id = id;
     }
-    public void setPassword (String password) {
+
+    public void setPassword(String password) {
         this.password = password;
     }
-    public String getPassword () {
+
+    public String getPassword() {
         return password;
     }
-    public void setDeleted (boolean deleted) {
+
+    public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
+
     public boolean isDeleted() {
         return deleted;
     }
-    public void setActive (boolean active) {
+
+    public void setActive(boolean active) {
         this.active = active;
     }
+
     public boolean isActive() {
         return active;
-    }   
+    }
 
-    public void setPasswordhistory (List<SECPasswordHistory> passwordhistory) {
-        this.passwordhistory = passwordhistory;
+    public void set(String prop, String value) {
+        SECUserProp p = getProp(prop);
+        if (p != null) {
+            p.setPropValue(value);
+        } else {
+            p = new SECUserProp();
+            p.setPropName(prop);
+            p.setPropValue(value);
+            props.add(p);
+        }
     }
-    public List<SECPasswordHistory> getPasswordhistory () {
-        return passwordhistory;
-    }        
-    public void addPasswordHistoryValue (String passwordhistoryhash) {
-        passwordhistory.add (new SECPasswordHistory(passwordhistoryhash));
+
+    public String get(String prop) {
+        SECUserProp p = getProp(prop);
+        if (p != null) {
+            return p.getPropValue();
+        } else {
+            return null;
+        }
     }
-    public boolean containsPasswordHistoryValue (String passwordhistoryhash) {
-        return passwordhistoryhash != null ? 
-            passwordhistory.contains (
-                new SECPasswordHistory (passwordhistoryhash)
-            ) : false;
+
+    public List<SECUserProp> getProps() {
+        return props;
     }
-    public void prunePasswordHistoryValue (int numPasswordHistoryValue) {
-        while (passwordhistory.size() > numPasswordHistoryValue) {
-            passwordhistory.remove(0);
-         }               
-    }
-    
-    public void setProps (Map<String,String> props) {
+
+    public void setProps(List<SECUserProp> props) {
         this.props = props;
     }
-    public Map<String,String> getProps () {
-        return (props = props == null ? new HashMap<String,String> () : props);
+
+    private SECUserProp getProp(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (SECUserProp prop : props) {
+            if (name.equals(prop.getPropName())) {
+                return prop;
+            }
+        }
+        return null;
     }
-    public void set (String prop, String value) {
-        getProps().put (prop, value);
-    }
-    public String get (String prop) {
-        return (String) getProps().get (prop);
-    }
-    public String get (String prop, String defValue) {
-        String value = (String) getProps().get (prop);
+
+    public String get(String prop, String defValue) {
+        String value = get(prop);
         return value == null ? defValue : value;
     }
-    public boolean hasProperty (String prop) {
-        return (String) getProps().get (prop) != null ? true : false; 
+
+    public boolean hasProperty(String prop) {
+        return get(prop) != null ? true : false;
     }
-    
+
+    @Override
     public String toString() {
-        return new ToStringBuilder(this)
-            .append("id", getId())
-            .append("nick", getNick())
-            .toString();
+        return new ToStringBuilder(this).append("id", getId()).append("nick", getNick()).toString();
     }
-    public boolean equals(Object other) {
-        if ( !(other instanceof SECUser) ) return false;
-        SECUser castOther = (SECUser) other;
-        return new EqualsBuilder()
-            .append(this.getId(), castOther.getId())
-            .isEquals();
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final SECUser other = (SECUser) obj;
+        if (this.id != other.id) {
+            return false;
+        }
+        return true;
     }
+
+    @Override
     public int hashCode() {
-        return new HashCodeBuilder()
-            .append(getId())
-            .toHashCode();
+        int hash = 5;
+        hash = 41 * hash + (int) (this.id ^ (this.id >>> 32));
+        return hash;
     }
-    
+
     /**
      * @return "nick(id)"
      */
     public String getNickAndId() {
-        StringBuffer sb = new StringBuffer (getNick());
-        sb.append ('(');
-        sb.append (Long.toString(getId()));
-        sb.append (')');
+        StringBuilder sb = new StringBuilder(getNick());
+        sb.append('(');
+        sb.append(Long.toString(getId()));
+        sb.append(')');
         return sb.toString();
     }
 
-    public Set<SECUserGroup> getGroups() {
+    public List<SECUserGroup> getGroups() {
+        if (groups == null) {
+            groups = new ArrayList<SECUserGroup>();
+        }
         return groups;
     }
 
-    public void setGroups(Set<SECUserGroup> groups) {
+    public void setGroups(List<SECUserGroup> groups) {
         this.groups = groups;
     }
-
-
 
     /**
      * @param email the email to set
@@ -195,8 +237,6 @@ public class SECUser extends Cloneable implements Serializable {
         this.email = email;
     }
 
-
-
     /**
      * @return the email
      */
@@ -204,13 +244,9 @@ public class SECUser extends Cloneable implements Serializable {
         return email;
     }
 
-
-
     public void setChangePassword(boolean changePassword) {
         this.changePassword = changePassword;
     }
-
-
 
     public boolean isChangePassword() {
         return changePassword;

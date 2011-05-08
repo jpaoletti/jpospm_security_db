@@ -1,5 +1,6 @@
-        <mapping resource="org/jpos/ee/pm/security/SECPermission.hbm.xml" />
-        <mapping resource="org/jpos/ee/pm/security/SECUserGroup.hbm.xml" />
-        <mapping resource="org/jpos/ee/pm/security/SECUser.hbm.xml" />
-        <mapping resource="org/jpos/ee/pm/security/rules/SECRule.hbm.xml" />
+
+        <mapping class="org.jpos.ee.pm.security.SECPermission" />
+        <mapping class="org.jpos.ee.pm.security.SECUserGroup" />
+        <mapping class="org.jpos.ee.pm.security.SECUser" />
+        <mapping class="org.jpos.ee.pm.security.SECUserProp" />
         
