@@ -24,40 +24,46 @@ import org.jpos.ee.DB;
 import org.jpos.ee.pm.security.*;
 
 import junit.framework.TestCase;
+import org.hibernate.HibernateException;
 
 public class UserTest extends TestCase {
 
     public void testInsert() throws Exception {
-        DB db = new DB();
-        db.open();
-        assertNotNull (db.session());
-        Transaction tx = db.open().beginTransaction();
-        
-        SECPermission p = new SECPermission();
-        p.setName(SECPermission.LOGIN);
-        db.save(p);
+        try {
+            final DB db = new DB();
+            db.open();
+            assertNotNull(db.session());
+            final Transaction tx = db.open().beginTransaction();
 
-        SECPermission p2 = new SECPermission();
-        p2.setName(SECPermission.USER_ADMIN);
-        db.save(p2);
-        
-        SECUserGroup group = new SECUserGroup();
-        group.setActive(true);
-        group.setCreation(new Date());
-        group.setDescription("Super Administration");
-        group.setName("Administrators");
-        group.grant(p);
-        group.grant(p2);
-        db.save(group);
+            final SECPermission p = new SECPermission();
+            p.setName(SECPermission.LOGIN);
+            db.save(p);
 
-        SECUser user = new SECUser();
-        user.setNick ("admin");
-        user.setPassword ("66d4aaa5ea177ac32c69946de3731ec0"); //test
-        user.setName ("Administrator");
-        user.setActive (true);
-        user.getGroups().add(group);
-        
-        db.save(user);
-        tx.commit();
+            final SECPermission p2 = new SECPermission();
+            p2.setName(SECPermission.USER_ADMIN);
+            db.save(p2);
+
+            final SECUserGroup group = new SECUserGroup();
+            group.setActive(true);
+            group.setCreation(new Date());
+            group.setDescription("Super Administration");
+            group.setName("Administrators");
+            group.grant(p);
+            group.grant(p2);
+            db.save(group);
+
+            final SECUser user = new SECUser();
+            user.setNick("admin");
+            user.setPassword("$2a$12$I3T7QvrtClBjGA9mhVIDhe2XNj5GvaeaHv7Zx1v6P6Be3PXfA4f9W"); //test
+            user.setName("Administrator");
+            user.setActive(true);
+            user.getGroups().add(group);
+
+            db.save(user);
+            tx.commit();
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw exception;
+        }
     }
 }
