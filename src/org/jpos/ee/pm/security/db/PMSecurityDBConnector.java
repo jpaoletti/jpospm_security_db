@@ -233,6 +233,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         output.setDeleted(u.isDeleted());
         output.setEmail(u.getEmail());
         output.setName(u.getName());
+        output.setPassword(u.getPassword());
         if (secuser == null) {
             output.setNick(u.getUsername().toLowerCase());
         }
