@@ -52,7 +52,7 @@ public class SECUser extends Cloneable implements Serializable {
     @Column(name = "change_password")
     @Type(type = "yes_no")
     private boolean changePassword;
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", cascade=CascadeType.ALL)
     private List<SECUserProp> props;
 
     public SECUser() {
@@ -139,6 +139,7 @@ public class SECUser extends Cloneable implements Serializable {
             p = new SECUserProp();
             p.setPropName(prop);
             p.setPropValue(value);
+            p.setUser(this);
             props.add(p);
         }
     }
