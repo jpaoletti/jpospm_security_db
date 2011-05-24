@@ -29,6 +29,7 @@ import javax.persistence.*;
 public class SECUserProp implements Serializable {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @ManyToOne
     @JoinColumn(name="user")
