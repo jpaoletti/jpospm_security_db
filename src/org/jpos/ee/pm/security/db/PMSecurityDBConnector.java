@@ -1,3 +1,20 @@
+/*
+ * jPOS Project [http://jpos.org]
+ * Copyright (C) 2000-2008 Alejandro P. Revilla
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.jpos.ee.pm.security.db;
 
 import java.util.ArrayList;
@@ -34,7 +51,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         return convert(dbuser);
     }
 
-    public SECUser getDBUser(String username) {
+    public SECUser getDBUser(String username) throws PMSecurityException {
         final DB db = getDb();
         SECUser u = null;
         try {
@@ -44,6 +61,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             }
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
         return u;
     }
@@ -57,8 +75,11 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             for (SECUser u : users) {
                 result.add(convert(u));
             }
+        } catch (PMSecurityException e) {
+            throw e;
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
         return result;
     }
@@ -74,8 +95,11 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             final SECUser secuser = unconvert(null, user);
             secuser.setPassword(encrypt(user.getPassword()));
             db.session().save(secuser);
+        } catch (PMSecurityException e) {
+            throw e;
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
     }
 
@@ -87,8 +111,11 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             SECUser secuser = getDBUser(user.getUsername());
             secuser = unconvert(secuser, user);
             db.session().update(secuser);
+        } catch (PMSecurityException e) {
+            throw e;
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
     }
 
@@ -97,13 +124,14 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         return convert(getDBGroup(groupname));
     }
 
-    public SECUserGroup getDBGroup(String groupname) {
+    public SECUserGroup getDBGroup(String groupname) throws PMSecurityException {
         final DB db = getDb();
         SECUserGroup g = null;
         try {
             g = (SECUserGroup) db.session().createCriteria(SECUserGroup.class).add(Restrictions.eq("name", groupname)).uniqueResult();
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
         return g;
     }
@@ -135,8 +163,11 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             final SECUserGroup secuserg = unconvert(null, group);
 
             db.session().save(secuserg);
+        } catch (PMSecurityException e) {
+            throw e;
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
     }
 
@@ -214,7 +245,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         return perm;
     }
 
-    protected SECUser unconvert(SECUser secuser, PMSecurityUser u) {
+    protected SECUser unconvert(SECUser secuser, PMSecurityUser u) throws PMSecurityException {
         if (u == null) {
             return null;
         }
@@ -226,7 +257,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         return user;
     }
 
-    protected void unload(PMSecurityUser u, SECUser secuser, SECUser output) {
+    protected void unload(PMSecurityUser u, SECUser secuser, SECUser output) throws PMSecurityException {
         output.getGroups().clear();
         output.setActive(u.isActive());
         output.setChangePassword(u.isChangePassword());
@@ -242,7 +273,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         }
     }
 
-    protected SECUserGroup unconvert(SECUserGroup secgroup, PMSecurityUserGroup g) {
+    protected SECUserGroup unconvert(SECUserGroup secgroup, PMSecurityUserGroup g) throws PMSecurityException {
         if (g == null) {
             return null;
         }
@@ -261,7 +292,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
         return group;
     }
 
-    protected SECPermission getDBPerm(String name) {
+    protected SECPermission getDBPerm(String name) throws PMSecurityException {
         final DB db = getDb();
         SECPermission p = null;
         try {
@@ -271,6 +302,7 @@ public class PMSecurityDBConnector extends PMSecurityAbstractConnector {
             }
         } catch (Exception e) {
             getLog().error(e);
+            throw new PMSecurityException(e);
         }
         return p;
     }
